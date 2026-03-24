@@ -13,11 +13,19 @@ function saveFavorites(favorites) {
   localStorage.setItem(FAVORITE_KEY, JSON.stringify(favorites));
 }
 
+function todayString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function toggleFavorite(name) {
   const favorites = getFavorites();
   const key = normalizeText(name);
   const idx = favorites.indexOf(key);
-  if (idx >= 0) favorites.splice(idx, 1); else favorites.push(key);
+  if (idx >= 0) {
+    favorites.splice(idx, 1);
+  } else {
+    favorites.push(key);
+  }
   saveFavorites(favorites);
   runSearch();
 }
@@ -29,73 +37,119 @@ function populateSelects() {
 
   for (let m = 1; m <= 12; m++) {
     const opt = document.createElement("option");
-    opt.value = String(m); opt.textContent = `${m}月`; monthSelect.appendChild(opt);
+    opt.value = String(m);
+    opt.textContent = `${m}月`;
+    monthSelect.appendChild(opt);
   }
   for (let d = 1; d <= 31; d++) {
     const opt = document.createElement("option");
-    opt.value = String(d); opt.textContent = `${d}日`; daySelect.appendChild(opt);
+    opt.value = String(d);
+    opt.textContent = `${d}日`;
+    daySelect.appendChild(opt);
   }
   for (let h = 10; h <= 20; h++) {
     const opt = document.createElement("option");
-    opt.value = String(h); opt.textContent = `${h}時以降`; hourSelect.appendChild(opt);
+    opt.value = String(h);
+    opt.textContent = `${h}時以降`;
+    hourSelect.appendChild(opt);
   }
 }
 
-function filterEvents(list, includePast = false) {
-  const nameQuery = normalizeText(document.getElementById("nameQuery").value);
-  const eventType = document.getElementById("eventType").value;
-  const month = document.getElementById("month").value;
-  const day = document.getElementById("day").value;
-  const hour = document.getElementById("hour").value;
-  const today = new Date().toISOString().slice(0,10);
+function getCurrentFilters() {
+  return {
+    nameQuery: normalizeText(document.getElementById("nameQuery").value),
+    eventType: document.getElementById("eventType").value,
+    month: document.getElementById("month").value,
+    day: document.getElementById("day").value,
+    hour: document.getElementById("hour").value,
+  };
+}
 
-  return list.filter(ev => {
+function filterEvents(list, includePast = false) {
+  const { nameQuery, eventType, month, day, hour } = getCurrentFilters();
+  const today = todayString();
+
+  return list.filter((ev) => {
     if (!includePast && ev.date < today) return false;
+    if (includePast && ev.date >= today) return false;
     if (eventType !== "all" && ev.eventType !== eventType) return false;
     if (month !== "all" && ev.month !== Number(month)) return false;
     if (day !== "all" && ev.day !== Number(day)) return false;
     if (hour !== "all" && ev.timeMinutes < Number(hour) * 60) return false;
     if (nameQuery) {
-      const hit = ev.performers.some(name => normalizeText(name).includes(nameQuery));
+      const hit = ev.performers.some((name) => normalizeText(name).includes(nameQuery));
       if (!hit) return false;
     }
     return true;
-  }).sort((a,b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
+  }).sort((a, b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
 }
 
 function renderEvents(targetId, list) {
   const target = document.getElementById(targetId);
   const favorites = getFavorites();
+
   if (!list.length) {
     target.innerHTML = '<p class="empty">該当する公演はありません。</p>';
     return;
   }
-  target.innerHTML = list.map(ev => {
-    const performers = ev.performers.map(name => {
-      const isFavorite = favorites.includes(normalizeText(name));
-      return `<span class="performer ${isFavorite ? 'favorite' : ''}"><button class="star" data-name="${name}">${isFavorite ? '★' : '☆'}</button>${name}</span>`;
-    }).join('');
-    return `<article class="result-card"><h3>${ev.title}</h3><div class="meta">${ev.date} ${ev.time} / 会場: ${ev.venue}</div><div class="performers">${performers}</div></article>`;
-  }).join('');
 
-  target.querySelectorAll('.star').forEach(btn => {
-    btn.addEventListener('click', () => toggleFavorite(btn.dataset.name));
+  target.innerHTML = list.map((ev) => {
+    const performers = ev.performers.map((name) => {
+      const isFavorite = favorites.includes(normalizeText(name));
+      return `<span class="performer ${isFavorite ? "favorite" : ""}"><button class="star" data-name="${name}" type="button">${isFavorite ? "★" : "☆"}</button>${name}</span>`;
+    }).join("");
+
+    return `
+      <article class="result-card">
+        <div class="datetime-venue">${ev.date} ${ev.time} / ${ev.venue}</div>
+        <h3>${ev.title}</h3>
+        <div class="performers">${performers}</div>
+      </article>
+    `;
+  }).join("");
+
+  target.querySelectorAll(".star").forEach((btn) => {
+    btn.addEventListener("click", () => toggleFavorite(btn.dataset.name));
   });
 }
 
 function runSearch() {
-  const upcoming = filterEvents(events, false);
-  const archive = filterEvents(events, true).filter(ev => ev.date < new Date().toISOString().slice(0,10));
-  renderEvents('results', upcoming);
-  renderEvents('archiveResults', archive);
+  renderEvents("results", filterEvents(events, false));
+  renderEvents("archiveResults", filterEvents(events, true));
+}
+
+function bindAutoSearch() {
+  ["nameQuery", "eventType", "month", "day", "hour"].forEach((id) => {
+    const el = document.getElementById(id);
+    const eventName = id === "nameQuery" ? "input" : "change";
+    el.addEventListener(eventName, runSearch);
+  });
+
+  document.getElementById("searchBtn").addEventListener("click", runSearch);
+}
+
+function bindFloatingTop() {
+  const floatingTopBtn = document.getElementById("floatingTopBtn");
+  floatingTopBtn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 280) {
+      floatingTopBtn.classList.add("show");
+    } else {
+      floatingTopBtn.classList.remove("show");
+    }
+  });
 }
 
 async function init() {
   populateSelects();
-  const res = await fetch('data/events.json');
+  bindAutoSearch();
+  bindFloatingTop();
+
+  const res = await fetch("data/events.json", { cache: "no-store" });
   events = await res.json();
-  document.getElementById('searchBtn').addEventListener('click', runSearch);
-  document.getElementById('scrollTopBtn').addEventListener('click', () => window.scrollTo({top:0,behavior:'smooth'}));
   runSearch();
 }
 
