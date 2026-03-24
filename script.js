@@ -2,9 +2,11 @@ const FAVORITE_KEY = "oshikatsu-favorites";
 let events = [];
 
 function formatDisplayDate(ev) {
-  return `${ev.month}月${ev.day}日 開演${ev.time}`;
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  const dateObj = new Date(ev.date);
+  const weekday = weekdays[dateObj.getDay()];
+  return `${ev.month}月${ev.day}日(${weekday}) 開演${ev.time}`;
 }
-
 
 function normalizeText(text) {
   return (text || "").trim().replace(/\s+/g, " ").normalize("NFKC").toLowerCase();
