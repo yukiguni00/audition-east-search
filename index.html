@@ -9,7 +9,7 @@
 <body>
   <main class="container">
     <header class="hero">
-      <h1>オーディションEAST／スタンドアップ出演者検索（非公式）</h1>
+      <h1>オーディションEAST<br>渋谷・神保町スタンドアップ<br>出演者検索（非公式）</h1>
     </header>
 
     <section class="panel">
@@ -20,7 +20,7 @@
     <section class="panel">
       <h2>条件で絞り込む</h2>
       <div class="filters">
-        <label>ライブ名
+        <label class="filter-full">ライブ名
           <select id="eventType">
             <option value="all">すべて</option>
             <option value="audition-1st-east">オーディション1stステージ EAST</option>
@@ -28,21 +28,23 @@
             <option value="standup">渋谷・神保町スタンドアップ</option>
           </select>
         </label>
-        <label>月
-          <select id="month">
-            <option value="all">すべて</option>
-          </select>
-        </label>
-        <label>日
-          <select id="day">
-            <option value="all">すべて</option>
-          </select>
-        </label>
-        <label>時間
-          <select id="hour">
-            <option value="all">すべて</option>
-          </select>
-        </label>
+        <div class="filters-compact">
+          <label>月
+            <select id="month">
+              <option value="all">すべて</option>
+            </select>
+          </label>
+          <label>日
+            <select id="day">
+              <option value="all">すべて</option>
+            </select>
+          </label>
+          <label>時間
+            <select id="hour">
+              <option value="all">すべて</option>
+            </select>
+          </label>
+        </div>
       </div>
       <p class="note">※ 月だけ選んでも検索できます</p>
       <button id="searchBtn">検索</button>
@@ -65,8 +67,9 @@
     </section>
 
     <footer class="footer">
-      <p>出典：<a href="https://x.com/jimbo_audition" target="_blank" rel="noopener noreferrer">@jimbo_audition</a></p>
-      <p>最新情報は公式アカウントをご確認ください。本サイトは非公式です。</p>
+      <p>情報出典：<a href="https://x.com/jimbo_audition" target="_blank" rel="noopener noreferrer">@jimbo_audition</a></p>
+      <p>最新情報は公式アカウントをご確認ください。<br>本サイトは非公式です。</p>
+      <p>Contact : <a href="https://x.com/yukiguni00" target="_blank" rel="noopener noreferrer">@yukiguni00</a></p>
     </footer>
   </main>
   <script src="script.js"></script>
