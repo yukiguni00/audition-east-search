@@ -1,6 +1,11 @@
 const FAVORITE_KEY = "oshikatsu-favorites";
 let events = [];
 
+function formatDisplayDate(ev) {
+  return `${ev.month}月${ev.day}日 開演${ev.time}`;
+}
+
+
 function normalizeText(text) {
   return (text || "").trim().replace(/\s+/g, " ").normalize("NFKC").toLowerCase();
 }
@@ -101,7 +106,7 @@ function renderEvents(targetId, list) {
 
     return `
       <article class="result-card">
-        <div class="datetime-venue">${ev.date} ${ev.time} / ${ev.venue}</div>
+        <div class="datetime-venue">${formatDisplayDate(ev)} / ${ev.venue}</div>
         <h3>${ev.title}</h3>
         <div class="performers">${performers}</div>
       </article>
