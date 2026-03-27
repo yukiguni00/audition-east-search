@@ -141,7 +141,6 @@ function bindAutoSearch() {
     el.addEventListener(eventName, runSearch);
   });
 
-  document.getElementById("searchBtn").addEventListener("click", runSearch);
   document.getElementById("clearBtn").addEventListener("click", clearFilters);
 }
 
