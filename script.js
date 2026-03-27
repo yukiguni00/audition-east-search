@@ -1,3 +1,4 @@
+let favoritesOnlyMode = false;
 const FAVORITE_KEY = "oshikatsu-favorites";
 let events = [];
 
@@ -72,12 +73,37 @@ function getCurrentFilters() {
   };
 }
 
+function getFavoritePerformersSet() {
+  try {
+    const raw = localStorage.getItem("favoritePerformers");
+    const list = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(list) ? list : []);
+  } catch (e) {
+    return new Set();
+  }
+}
+
+function eventHasFavorite(ev) {
+  const favorites = getFavoritePerformersSet();
+  if (!favorites.size || !Array.isArray(ev.performers)) return false;
+  return ev.performers.some(name => favorites.has(name));
+}
+
+function updateFavoritesOnlyButton() {
+  const btn = document.getElementById("favoritesOnlyBtn");
+  if (!btn) return;
+  btn.setAttribute("aria-pressed", favoritesOnlyMode ? "true" : "false");
+  btn.classList.toggle("is-active", favoritesOnlyMode);
+}
+
 function clearFilters() {
   document.getElementById("nameQuery").value = "";
   document.getElementById("eventType").value = "all";
   document.getElementById("month").value = "all";
   document.getElementById("day").value = "all";
   document.getElementById("hour").value = "all";
+  favoritesOnlyMode = false;
+  updateFavoritesOnlyButton();
   runSearch();
 }
 
@@ -142,6 +168,12 @@ function bindAutoSearch() {
   });
 
   document.getElementById("clearBtn").addEventListener("click", clearFilters);
+  document.getElementById("favoritesOnlyBtn").addEventListener("click", () => {
+    favoritesOnlyMode = !favoritesOnlyMode;
+    updateFavoritesOnlyButton();
+    runSearch();
+  });
+  updateFavoritesOnlyButton();
 }
 
 function bindFloatingTop() {
