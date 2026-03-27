@@ -75,7 +75,7 @@ function getCurrentFilters() {
 
 function getFavoritePerformersSet() {
   try {
-    const raw = localStorage.getItem("favoritePerformers");
+    const raw = localStorage.getItem("FAVORITE_KEY");
     const list = raw ? JSON.parse(raw) : [];
     return new Set(Array.isArray(list) ? list : []);
   } catch (e) {
