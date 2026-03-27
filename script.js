@@ -72,6 +72,15 @@ function getCurrentFilters() {
   };
 }
 
+function clearFilters() {
+  document.getElementById("nameQuery").value = "";
+  document.getElementById("eventType").value = "all";
+  document.getElementById("month").value = "all";
+  document.getElementById("day").value = "all";
+  document.getElementById("hour").value = "all";
+  runSearch();
+}
+
 function filterEvents(list, includePast = false) {
   const { nameQuery, eventType, month, day, hour } = getCurrentFilters();
   const today = todayString();
@@ -133,6 +142,7 @@ function bindAutoSearch() {
   });
 
   document.getElementById("searchBtn").addEventListener("click", runSearch);
+  document.getElementById("clearBtn").addEventListener("click", clearFilters);
 }
 
 function bindFloatingTop() {
