@@ -122,6 +122,7 @@ function filterEvents(list, includePast = false) {
       const hit = ev.performers.some((name) => normalizeText(name).includes(nameQuery));
       if (!hit) return false;
     }
+    if (favoritesOnlyMode && !eventHasFavorite(ev)) return false;
     return true;
   }).sort((a, b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
 }
