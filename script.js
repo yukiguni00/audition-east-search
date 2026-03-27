@@ -1,5 +1,5 @@
 let favoritesOnlyMode = false;
-const FAVORITE_KEY = "oshikatsu-favorites";
+const FAVORITE_KEY = "favoritePerformers";
 let events = [];
 
 function formatDisplayDate(ev) {
@@ -86,7 +86,7 @@ function getFavoritePerformersSet() {
 function eventHasFavorite(ev) {
   const favorites = getFavoritePerformersSet();
   if (!favorites.size || !Array.isArray(ev.performers)) return false;
-  return ev.performers.some(name => favorites.has(name));
+  return ev.performers.some(name => favorites.has(normalizeText(name)));
 }
 
 function updateFavoritesOnlyButton() {
