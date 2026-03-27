@@ -14,7 +14,7 @@ function normalizeText(text) {
 }
 
 function getFavorites() {
-  return JSON.parse(localStorage.getItem(FAVORITE_KEY) || "[]");
+  return JSON.parse(localStorage.getItem(favoritePerformers) || "[]");
 }
 
 function saveFavorites(favorites) {
