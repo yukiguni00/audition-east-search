@@ -14,7 +14,7 @@ function normalizeText(text) {
 }
 
 function getFavorites() {
-  return JSON.parse(localStorage.getItem(favoritePerformers) || "[]");
+  return JSON.parse(localStorage.getItem(FAVORITE_KEY) || "[]");
 }
 
 function saveFavorites(favorites) {
@@ -75,7 +75,7 @@ function getCurrentFilters() {
 
 function getFavoritePerformersSet() {
   try {
-    const raw = localStorage.getItem("FAVORITE_KEY");
+    const raw = localStorage.getItem(FAVORITE_KEY);
     const list = raw ? JSON.parse(raw) : [];
     return new Set(Array.isArray(list) ? list : []);
   } catch (e) {
