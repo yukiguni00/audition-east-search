@@ -73,6 +73,7 @@ button{padding:12px 16px;border:none;border-radius:12px;background:#111;color:#f
   justify-content:space-between;
   align-items:center;
   gap:8px;
+  margin-top: 14px;
 }
 .secondary-btn{
   width:auto;
