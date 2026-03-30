@@ -194,19 +194,28 @@ function runSearch() {
 }
 
 function bindAutoSearch() {
+  let debounceTimer;
+
   ["nameQuery", "eventType", "month", "day", "hour"].forEach((id) => {
     const el = document.getElementById(id);
-    const eventName = id === "nameQuery" ? "input" : "change";
-    el.addEventListener(eventName, runSearch);
+
+    if (id === "nameQuery") {
+      el.addEventListener("input", () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(runSearch, 300);
+      });
+    } else {
+      el.addEventListener("change", runSearch);
+    }
   });
 
   document.getElementById("clearBtn").addEventListener("click", clearFilters);
-  document.getElementById("randomPerformerBtn").addEventListener("click", pickRandomPerformer);
   document.getElementById("favoritesOnlyBtn").addEventListener("click", () => {
     favoritesOnlyMode = !favoritesOnlyMode;
     updateFavoritesOnlyButton();
     runSearch();
   });
+  document.getElementById("randomPerformerBtn").addEventListener("click", pickRandomPerformer);
   updateFavoritesOnlyButton();
 }
 
