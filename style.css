@@ -75,6 +75,20 @@ button{padding:12px 16px;border:none;border-radius:12px;background:#111;color:#f
   gap:8px;
   margin-top: 14px;
 }
+
+.random-btn{
+  width:100%;
+  margin-top:12px;
+  text-align:center;
+  justify-content:center;
+  background:#ececf1;
+  color:#555;
+  border:1px solid #d8d8de;
+}
+.random-btn:hover{
+  background:#e4e4ea;
+}
+
 .secondary-btn{
   width:auto;
   padding:10px 14px;
