@@ -41,7 +41,7 @@ button{padding:12px 16px;border:none;border-radius:12px;background:#111;color:#f
 }
 
 .result-card h3{font-size:1rem;font-weight:400;margin:0 0 10px}
-.datetime-venue{font-size:1.05rem;font-weight:700;margin:0 0 10px}
+.datetime-venue{font-size:1.02rem;font-weight:700;margin:0 0 10px}
 @media (max-width:720px){
   .datetime-venue{font-size:1.17rem}
 }
