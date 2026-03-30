@@ -96,6 +96,50 @@ function updateFavoritesOnlyButton() {
   btn.classList.toggle("is-active", favoritesOnlyMode);
 }
 
+function eventMatchesFilters(ev, filters, includePast = false, options = {}) {
+  const { ignoreNameQuery = false, ignoreFavoritesOnly = false } = options;
+  const today = todayString();
+
+  if (!includePast && ev.date < today) return false;
+  if (includePast && ev.date >= today) return false;
+  if (filters.eventType !== "all" && ev.eventType !== filters.eventType) return false;
+  if (filters.month !== "all" && ev.month !== Number(filters.month)) return false;
+  if (filters.day !== "all" && ev.day !== Number(filters.day)) return false;
+  if (filters.hour !== "all" && ev.timeMinutes < Number(filters.hour) * 60) return false;
+  if (!ignoreNameQuery && filters.nameQuery) {
+    const hit = ev.performers.some((name) => normalizeText(name).includes(filters.nameQuery));
+    if (!hit) return false;
+  }
+  if (!ignoreFavoritesOnly && favoritesOnlyMode && !eventHasFavorite(ev)) return false;
+  return true;
+}
+
+function pickRandomPerformer() {
+  const filters = getCurrentFilters();
+  const favorites = new Set(getFavorites());
+
+  const matchedEvents = events.filter((ev) =>
+    eventMatchesFilters(ev, filters, false, { ignoreNameQuery: true }) ||
+    eventMatchesFilters(ev, filters, true, { ignoreNameQuery: true })
+  );
+
+  const allNames = [...new Set(
+    matchedEvents.flatMap((ev) => Array.isArray(ev.performers) ? ev.performers : [])
+  )];
+
+  if (!allNames.length) {
+    alert("この条件で選べる出演者が見つかりませんでした");
+    return;
+  }
+
+  const nonFavoriteNames = allNames.filter((name) => !favorites.has(normalizeText(name)));
+  const pool = nonFavoriteNames.length ? nonFavoriteNames : allNames;
+  const selected = pool[Math.floor(Math.random() * pool.length)];
+
+  document.getElementById("nameQuery").value = selected;
+  runSearch();
+}
+
 function clearFilters() {
   document.getElementById("nameQuery").value = "";
   document.getElementById("eventType").value = "all";
@@ -108,23 +152,11 @@ function clearFilters() {
 }
 
 function filterEvents(list, includePast = false) {
-  const { nameQuery, eventType, month, day, hour } = getCurrentFilters();
-  const today = todayString();
+  const filters = getCurrentFilters();
 
-  return list.filter((ev) => {
-    if (!includePast && ev.date < today) return false;
-    if (includePast && ev.date >= today) return false;
-    if (eventType !== "all" && ev.eventType !== eventType) return false;
-    if (month !== "all" && ev.month !== Number(month)) return false;
-    if (day !== "all" && ev.day !== Number(day)) return false;
-    if (hour !== "all" && ev.timeMinutes < Number(hour) * 60) return false;
-    if (nameQuery) {
-      const hit = ev.performers.some((name) => normalizeText(name).includes(nameQuery));
-      if (!hit) return false;
-    }
-    if (favoritesOnlyMode && !eventHasFavorite(ev)) return false;
-    return true;
-  }).sort((a, b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
+  return list
+    .filter((ev) => eventMatchesFilters(ev, filters, includePast))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
 }
 
 function renderEvents(targetId, list) {
@@ -169,6 +201,7 @@ function bindAutoSearch() {
   });
 
   document.getElementById("clearBtn").addEventListener("click", clearFilters);
+  document.getElementById("randomPerformerBtn").addEventListener("click", pickRandomPerformer);
   document.getElementById("favoritesOnlyBtn").addEventListener("click", () => {
     favoritesOnlyMode = !favoritesOnlyMode;
     updateFavoritesOnlyButton();
