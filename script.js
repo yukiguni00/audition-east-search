@@ -164,7 +164,7 @@ function renderEvents(targetId, list) {
   const favorites = getFavorites();
 
   if (!list.length) {
-    target.innerHTML = '<p class="empty">表示可能な情報はありません</p>';
+    target.innerHTML = '<p class="empty"></p>';
     return;
   }
 
