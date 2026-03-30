@@ -19,9 +19,18 @@
   <meta name="twitter:description" content="日時などで検索可能 / お気に入り機能あり">
   <meta name="twitter:image" content="https://yukiguni00.github.io/search-audition/ogp-twitter.jpg">
 
-  <!-- Cloudflare Web Analytics -->
-  <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "466d8e9a4f474f79be9cd1b76ddd137b"}'></script>
-  <!-- End Cloudflare Web Analytics -->
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const disableAnalytics = params.get("noanalytics") === "1";
+
+    if (!disableAnalytics) {
+      const script = document.createElement("script");
+      script.defer = true;
+      script.src = "https://static.cloudflareinsights.com/beacon.min.js";
+      script.setAttribute("data-cf-beacon", '{"token": "466d8e9a4f474f79be9cd1b76ddd137b"}');
+      document.head.appendChild(script);
+      }
+  </script>
   
   <link rel="stylesheet" href="style.css">
 </head>
