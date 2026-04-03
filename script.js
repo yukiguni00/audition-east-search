@@ -38,6 +38,16 @@ function toggleFavorite(name) {
   runSearch();
 }
 
+function updateFavoriteUI(key, isFavorite) {
+  document.querySelectorAll(`.star[data-key="${CSS.escape(key)}"]`).forEach((btn) => {
+    btn.textContent = isFavorite ? "★" : "☆";
+    const performer = btn.closest(".performer");
+    if (performer) {
+      performer.classList.toggle("favorite", isFavorite);
+    }
+  });
+}
+
 function populateSelects() {
   const monthSelect = document.getElementById("month");
   const daySelect = document.getElementById("day");
