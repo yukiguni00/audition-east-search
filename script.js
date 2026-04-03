@@ -169,10 +169,11 @@ function renderEvents(targetId, list) {
   }
 
   target.innerHTML = list.map((ev) => {
-    const performers = ev.performers.map((name) => {
-      const isFavorite = favorites.includes(normalizeText(name));
-      return `<span class="performer ${isFavorite ? "favorite" : ""}"><button class="star" data-name="${name}" type="button">${isFavorite ? "★" : "☆"}</button>${name}</span>`;
-    }).join("");
+  const performers = ev.performers.map((name) => {
+    const normalizedName = normalizeText(name);
+    const isFavorite = favorites.includes(normalizedName);
+    return `<span class="performer ${isFavorite ? "favorite" : ""}"><button class="star" data-name="${name}" data-key="${normalizedName}" type="button">${isFavorite ? "★" : "☆"}</button>${name}</span>`;
+  }).join("");
 
     return `
       <article class="result-card">
