@@ -29,13 +29,24 @@ function toggleFavorite(name) {
   const favorites = getFavorites();
   const key = normalizeText(name);
   const idx = favorites.indexOf(key);
+
+  let isFavorite;
+
   if (idx >= 0) {
     favorites.splice(idx, 1);
+    isFavorite = false;
   } else {
     favorites.push(key);
+    isFavorite = true;
   }
+
   saveFavorites(favorites);
-  runSearch();
+
+  if (favoritesOnlyMode) {
+    runSearch();
+  } else {
+    updateFavoriteUI(key, isFavorite);
+  }
 }
 
 function updateFavoriteUI(key, isFavorite) {
