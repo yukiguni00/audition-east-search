@@ -199,8 +199,8 @@ function renderEvents(targetId, list) {
     const ticketLink = (targetId === "results" && ev.ticketUrl)
   ? `<p class="ticket-note">
        チケットは取り置き、もしくは
-       <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">こちら</a>
-       からご確認ください
+       <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">FANYチケット</a>
+       から
      </p>`
   : "";
 
