@@ -198,7 +198,7 @@ function renderEvents(targetId, list) {
 
     const ticketLink = (targetId === "results" && ev.ticketUrl)
   ? `<p class="ticket-note">
-       チケットは出演者への取り置き、もしくは
+       チケットは取り置き、もしくは
        <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">こちら</a>
        からご確認ください
      </p>`
