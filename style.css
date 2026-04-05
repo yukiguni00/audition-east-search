@@ -88,6 +88,14 @@ button{padding:12px 16px;border:none;border-radius:12px;background:#111;color:#f
   margin-top: 14px;
 }
 
+#archive{
+  background:#f3f4f6;
+}
+
+#archive h2{
+  color:#555;
+}
+
 .random-btn{
   width:100%;
   margin-top:12px;
