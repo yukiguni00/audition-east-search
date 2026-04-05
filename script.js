@@ -196,10 +196,11 @@ function renderEvents(targetId, list) {
     return `<span class="performer ${isFavorite ? "favorite" : ""}"><button class="star" data-name="${name}" data-key="${normalizedName}" type="button">${isFavorite ? "★" : "☆"}</button>${name}</span>`;
   }).join("");
 
-    const ticketLink = ev.ticketUrl
+    const ticketLink = (targetId === "results" && ev.ticketUrl)
   ? `<p class="ticket-note">
        チケットは出演者への取り置き、もしくは
-       <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">FANYチケット</a>から
+       <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">こちら</a>
+       からご確認ください
      </p>`
   : "";
 
