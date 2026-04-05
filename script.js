@@ -196,13 +196,21 @@ function renderEvents(targetId, list) {
     return `<span class="performer ${isFavorite ? "favorite" : ""}"><button class="star" data-name="${name}" data-key="${normalizedName}" type="button">${isFavorite ? "★" : "☆"}</button>${name}</span>`;
   }).join("");
 
-    return `
-      <article class="result-card">
-        <div class="datetime-venue">${formatDisplayDate(ev)} / ${ev.venue}</div>
-        <h3>${ev.title}</h3>
-        <div class="performers">${performers}</div>
-      </article>
-    `;
+    const ticketLink = ev.ticketUrl
+  ? `<p class="ticket-note">
+       チケットは出演者への取り置き、もしくは
+       <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">FANYチケット</a>から
+     </p>`
+  : "";
+
+return `
+  <article class="result-card">
+    <div class="datetime-venue">${formatDisplayDate(ev)} / ${ev.venue}</div>
+    <h3>${ev.title}</h3>
+    <div class="performers">${performers}</div>
+    ${ticketLink}
+  </article>
+`;
   }).join("");
 
   target.querySelectorAll(".star").forEach((btn) => {
