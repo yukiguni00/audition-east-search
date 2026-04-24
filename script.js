@@ -1,6 +1,7 @@
 let favoritesOnlyMode = false;
 const FAVORITE_KEY = "favoritePerformers";
 let events = [];
+let archiveOpen = false;
 
 function formatDisplayDate(ev) {
   const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
@@ -117,6 +118,41 @@ function updateFavoritesOnlyButton() {
   btn.classList.toggle("is-active", favoritesOnlyMode);
 }
 
+
+function setArchiveOpen(isOpen) {
+  archiveOpen = isOpen;
+
+  const btn = document.getElementById("archiveToggleBtn");
+  const body = document.getElementById("archiveBody");
+
+  if (btn) {
+    btn.setAttribute("aria-expanded", archiveOpen ? "true" : "false");
+    const icon = btn.querySelector(".archive-toggle-icon");
+    if (icon) icon.textContent = archiveOpen ? "−" : "＋";
+  }
+
+  if (body) {
+    body.hidden = !archiveOpen;
+  }
+}
+
+function hasActiveFilters(filters) {
+  return Boolean(
+    filters.nameQuery ||
+    filters.eventType !== "all" ||
+    filters.month !== "all" ||
+    filters.day !== "all" ||
+    filters.hour !== "all" ||
+    favoritesOnlyMode
+  );
+}
+
+function updateArchiveMessage(message) {
+  const target = document.getElementById("archiveMessage");
+  if (!target) return;
+  target.textContent = message || "";
+}
+
 function eventMatchesFilters(ev, filters, includePast = false, options = {}) {
   const { ignoreNameQuery = false, ignoreFavoritesOnly = false } = options;
   const today = todayString();
@@ -139,14 +175,25 @@ function pickRandomPerformer() {
   const filters = getCurrentFilters();
   const favorites = new Set(getFavorites());
 
-  const matchedEvents = events.filter((ev) =>
-    eventMatchesFilters(ev, filters, false, { ignoreNameQuery: true }) ||
-    eventMatchesFilters(ev, filters, true, { ignoreNameQuery: true })
-  );
-
-  const allNames = [...new Set(
-    matchedEvents.flatMap((ev) => Array.isArray(ev.performers) ? ev.performers : [])
+  const getUniqueNames = (eventList) => [...new Set(
+    eventList.flatMap((ev) => Array.isArray(ev.performers) ? ev.performers : [])
   )];
+
+  const futureEvents = events.filter((ev) =>
+    eventMatchesFilters(ev, filters, false, { ignoreNameQuery: true })
+  );
+  const futureNames = getUniqueNames(futureEvents);
+
+  let poolSource = "future";
+  let allNames = futureNames;
+
+  if (!allNames.length) {
+    const pastEvents = events.filter((ev) =>
+      eventMatchesFilters(ev, filters, true, { ignoreNameQuery: true })
+    );
+    allNames = getUniqueNames(pastEvents);
+    poolSource = "past";
+  }
 
   if (!allNames.length) {
     alert("この条件で選べる出演者が見つかりませんでした");
@@ -158,8 +205,14 @@ function pickRandomPerformer() {
   const selected = pool[Math.floor(Math.random() * pool.length)];
 
   document.getElementById("nameQuery").value = selected;
+
+  if (poolSource === "past") {
+    setArchiveOpen(true);
+  }
+
   runSearch();
 }
+
 
 function clearFilters() {
   document.getElementById("nameQuery").value = "";
@@ -180,48 +233,108 @@ function filterEvents(list, includePast = false) {
     .sort((a, b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
 }
 
-function renderEvents(targetId, list) {
-  const target = document.getElementById(targetId);
-  const favorites = getFavorites();
-
-  if (!list.length) {
-    target.innerHTML = '<p class="empty"></p>';
-    return;
-  }
-
-  target.innerHTML = list.map((ev) => {
+function buildEventCardHTML(ev, targetId, favorites) {
   const performers = ev.performers.map((name) => {
     const normalizedName = normalizeText(name);
     const isFavorite = favorites.includes(normalizedName);
     return `<span class="performer ${isFavorite ? "favorite" : ""}"><button class="star" data-name="${name}" data-key="${normalizedName}" type="button">${isFavorite ? "★" : "☆"}</button>${name}</span>`;
   }).join("");
 
-    const ticketLink = (targetId === "results" && ev.ticketUrl)
-  ? `<p class="ticket-note">
-       チケットは取り置き、もしくは
-       <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">FANYチケット</a>から
-     </p>`
-  : "";
+  const ticketLink = (targetId === "results" && ev.ticketUrl)
+    ? `<p class="ticket-note">
+         チケットは取り置き、もしくは
+         <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">FANYチケット</a>から
+       </p>`
+    : "";
 
-return `
-  <article class="result-card">
-    <div class="datetime-venue">${formatDisplayDate(ev)} / ${ev.venue}</div>
-    <h3>${ev.title}</h3>
-    <div class="performers">${performers}</div>
-    ${ticketLink}
-  </article>
-`;
-  }).join("");
+  return `
+    <article class="result-card">
+      <div class="datetime-venue">${formatDisplayDate(ev)} / ${ev.venue}</div>
+      <h3>${ev.title}</h3>
+      <div class="performers">${performers}</div>
+      ${ticketLink}
+    </article>
+  `;
+}
 
+function bindStarButtons(target) {
   target.querySelectorAll(".star").forEach((btn) => {
     btn.addEventListener("click", () => toggleFavorite(btn.dataset.name));
   });
 }
 
-function runSearch() {
-  renderEvents("results", filterEvents(events, false));
-  renderEvents("archiveResults", filterEvents(events, true));
+function renderEvents(targetId, list) {
+  const target = document.getElementById(targetId);
+  const favorites = getFavorites();
+
+  if (!list.length) {
+    target.innerHTML = targetId === "results"
+      ? '<p class="empty">該当する今後の開催はありません</p>'
+      : '<p class="empty"></p>';
+    return;
+  }
+
+  target.innerHTML = list.map((ev) => buildEventCardHTML(ev, targetId, favorites)).join("");
+  bindStarButtons(target);
 }
+
+function renderArchiveEvents(targetId, list, openMonths = false) {
+  const target = document.getElementById(targetId);
+  const favorites = getFavorites();
+
+  if (!list.length) {
+    target.innerHTML = '<p class="empty">該当する過去の開催はありません</p>';
+    return;
+  }
+
+  const groups = new Map();
+  list.forEach((ev) => {
+    const label = `${ev.date.slice(0, 4)}年${ev.month}月`;
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label).push(ev);
+  });
+
+  target.innerHTML = [...groups.entries()].map(([label, items]) => {
+    const cards = items.map((ev) => buildEventCardHTML(ev, "archiveResults", favorites)).join("");
+    return `
+      <details class="archive-month" ${openMonths ? "open" : ""}>
+        <summary>${label}</summary>
+        <div class="archive-month-content">
+          ${cards}
+        </div>
+      </details>
+    `;
+  }).join("");
+
+  bindStarButtons(target);
+}
+
+function runSearch() {
+  const filters = getCurrentFilters();
+  const futureResults = filterEvents(events, false);
+  const pastResults = filterEvents(events, true);
+  const activeFilters = hasActiveFilters(filters);
+  const pastOnlyHit = activeFilters && futureResults.length === 0 && pastResults.length > 0;
+
+  renderEvents("results", futureResults);
+
+  if (pastOnlyHit) {
+    setArchiveOpen(true);
+    updateArchiveMessage("今後の開催には該当がありません。過去の開催に該当があります。");
+  } else if (activeFilters && futureResults.length > 0 && pastResults.length > 0) {
+    updateArchiveMessage("過去の開催にも該当があります。");
+  } else {
+    updateArchiveMessage("");
+  }
+
+  if (archiveOpen) {
+    renderArchiveEvents("archiveResults", pastResults, activeFilters || pastOnlyHit);
+  } else {
+    const archiveResults = document.getElementById("archiveResults");
+    if (archiveResults) archiveResults.innerHTML = "";
+  }
+}
+
 
 function bindAutoSearch() {
   let debounceTimer;
@@ -246,6 +359,10 @@ function bindAutoSearch() {
     runSearch();
   });
   document.getElementById("randomPerformerBtn").addEventListener("click", pickRandomPerformer);
+  document.getElementById("archiveToggleBtn").addEventListener("click", () => {
+    setArchiveOpen(!archiveOpen);
+    runSearch();
+  });
   updateFavoritesOnlyButton();
 }
 
@@ -268,6 +385,7 @@ async function init() {
   populateSelects();
   bindAutoSearch();
   bindFloatingTop();
+  setArchiveOpen(false);
 
   const res = await fetch("data/events.json", { cache: "no-store" });
   events = await res.json();
