@@ -95,9 +95,17 @@
     </section>
 
 
-    <section class="panel" id="archive">
-      <h2>過去の開催</h2>
-      <div id="archiveResults"></div>
+    <section class="panel archive-panel" id="archive">
+      <h2 class="archive-heading">
+        <button id="archiveToggleBtn" class="archive-toggle" type="button" aria-expanded="false" aria-controls="archiveBody">
+          <span>過去の開催</span>
+          <span class="archive-toggle-icon" aria-hidden="true">＋</span>
+        </button>
+      </h2>
+      <p id="archiveMessage" class="archive-message" aria-live="polite"></p>
+      <div id="archiveBody" class="archive-body" hidden>
+        <div id="archiveResults"></div>
+      </div>
     </section>
 
     <button id="floatingTopBtn" class="floating-top-btn" aria-label="ページ上部へ戻る">↑ トップ</button>
