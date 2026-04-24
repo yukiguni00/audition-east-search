@@ -89,7 +89,7 @@ button{padding:12px 16px;border:none;border-radius:12px;background:#111;color:#f
 }
 
 #archive{
-  background:#C5C7C9;
+  background:#eef0f2;
 }
 
 .random-btn{
@@ -125,4 +125,74 @@ button{padding:12px 16px;border:none;border-radius:12px;background:#111;color:#f
   background:#111;
   color:#fff;
   border-color:#111;
+}
+
+
+.archive-heading{
+  margin:0;
+}
+.archive-toggle{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0;
+  background:transparent;
+  color:#333;
+  border:0;
+  border-radius:0;
+  font-weight:700;
+  text-align:left;
+}
+.archive-toggle:hover{
+  background:transparent;
+}
+.archive-toggle-icon{
+  color:#666;
+  font-size:1.1rem;
+  line-height:1;
+  margin-left:12px;
+}
+.archive-message{
+  margin:10px 0 0;
+  color:#666;
+  font-size:.85rem;
+  line-height:1.6;
+}
+.archive-message:empty{
+  display:none;
+}
+.archive-body{
+  margin-top:12px;
+}
+.archive-month{
+  background:#fff;
+  border:1px solid #d8dbe0;
+  border-radius:14px;
+  margin:10px 0;
+  overflow:hidden;
+}
+.archive-month summary{
+  cursor:pointer;
+  padding:12px 14px;
+  font-weight:700;
+  color:#444;
+  list-style:none;
+}
+.archive-month summary::-webkit-details-marker{
+  display:none;
+}
+.archive-month summary::after{
+  content:"＋";
+  float:right;
+  color:#777;
+}
+.archive-month[open] summary::after{
+  content:"−";
+}
+.archive-month-content{
+  padding:0 12px 12px;
+}
+#archive .result-card{
+  background:#fff;
 }
