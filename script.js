@@ -261,7 +261,10 @@ function buildEventCardHTML(ev, targetId, favorites) {
 
   return `
     <article class="result-card">
-      <div class="datetime-venue">${formatDisplayDate(ev)} / ${ev.venue}</div>
+      <div class="datetime-venue">
+        <div>${formatDisplayDate(ev)}</div>
+        <div class="venue-line">会場：${ev.venue}</div>
+      </div>
       <h3>${ev.title}</h3>
       <div class="performers">${performers}</div>
       ${ticketLink}
