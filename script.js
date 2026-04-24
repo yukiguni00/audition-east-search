@@ -233,6 +233,23 @@ function filterEvents(list, includePast = false) {
     .sort((a, b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
 }
 
+function getTicketLinkHTML(ev, targetId) {
+  if (targetId !== "results" || !ev.ticketUrl) return "";
+
+  if (ev.eventType === "audition-2nd-east") {
+    return `<p class="ticket-note">
+      チケットは
+      <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">FANYチケット</a>
+      からご購入ください
+    </p>`;
+  }
+
+  return `<p class="ticket-note">
+    チケットは取り置き、もしくは
+    <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">FANYチケット</a>から
+  </p>`;
+}
+
 function buildEventCardHTML(ev, targetId, favorites) {
   const performers = ev.performers.map((name) => {
     const normalizedName = normalizeText(name);
@@ -240,12 +257,7 @@ function buildEventCardHTML(ev, targetId, favorites) {
     return `<span class="performer ${isFavorite ? "favorite" : ""}"><button class="star" data-name="${name}" data-key="${normalizedName}" type="button">${isFavorite ? "★" : "☆"}</button>${name}</span>`;
   }).join("");
 
-  const ticketLink = (targetId === "results" && ev.ticketUrl)
-    ? `<p class="ticket-note">
-         チケットは取り置き、もしくは
-         <a href="${ev.ticketUrl}" target="_blank" rel="noopener noreferrer">FANYチケット</a>から
-       </p>`
-    : "";
+  const ticketLink = getTicketLinkHTML(ev, targetId);
 
   return `
     <article class="result-card">
