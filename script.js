@@ -120,7 +120,6 @@ function updateFavoritesOnlyButton() {
   btn.classList.toggle("is-active", favoritesOnlyMode);
 }
 
-
 function setArchiveOpen(isOpen) {
   archiveOpen = isOpen;
 
@@ -215,7 +214,6 @@ function pickRandomPerformer() {
   runSearch();
 }
 
-
 function clearFilters() {
   document.getElementById("nameQuery").value = "";
   document.getElementById("eventType").value = "all";
@@ -235,7 +233,6 @@ function filterEvents(list, includePast = false) {
     .sort((a, b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
 }
 
-
 function findPerformerDisplayName(key) {
   for (const ev of events) {
     if (!Array.isArray(ev.performers)) continue;
@@ -253,39 +250,39 @@ function getFavoriteScheduleData() {
     .filter((ev) => ev.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
 
-  const upcoming = [];
-  const noUpcoming = [];
+  const favoriteSet = new Set(favorites);
+  const upcomingKeys = new Set();
+  const eventGroups = [];
 
-  favorites.forEach((key) => {
-    const displayName = findPerformerDisplayName(key);
-    const nextEvent = futureEvents.find((ev) =>
-      Array.isArray(ev.performers) &&
-      ev.performers.some((name) => normalizeText(name) === key)
-    );
+  futureEvents.forEach((ev) => {
+    if (!Array.isArray(ev.performers)) return;
 
-    if (nextEvent) {
-      upcoming.push({
-        key,
-        name: displayName,
-        event: nextEvent,
-      });
-    } else {
-      noUpcoming.push({
-        key,
-        name: displayName,
-      });
-    }
+    const matchedNames = ev.performers.filter((name) => {
+      const key = normalizeText(name);
+      return favoriteSet.has(key);
+    });
+
+    if (!matchedNames.length) return;
+
+    matchedNames.forEach((name) => upcomingKeys.add(normalizeText(name)));
+
+    eventGroups.push({
+      event: ev,
+      names: matchedNames,
+    });
   });
 
-  upcoming.sort((a, b) =>
-    a.event.date.localeCompare(b.event.date) ||
-    a.event.timeMinutes - b.event.timeMinutes ||
-    a.name.localeCompare(b.name, "ja")
-  );
+  const noUpcoming = favorites
+    .filter((key) => !upcomingKeys.has(key))
+    .map((key) => ({
+      key,
+      name: findPerformerDisplayName(key),
+    }));
 
   return {
     total: favorites.length,
-    upcoming,
+    upcomingCount: upcomingKeys.size,
+    eventGroups,
     noUpcoming,
   };
 }
@@ -306,18 +303,17 @@ function renderFavoriteSchedule() {
 
   panel.hidden = false;
 
-  const { total, upcoming, noUpcoming } = getFavoriteScheduleData();
-  const visibleUpcoming = favoriteScheduleExpanded ? upcoming : upcoming.slice(0, 3);
-  const hasMore = upcoming.length > 3 || noUpcoming.length > 0;
+  const { total, upcomingCount, eventGroups, noUpcoming } = getFavoriteScheduleData();
+  const visibleGroups = favoriteScheduleExpanded ? eventGroups : eventGroups.slice(0, 3);
+  const hasMore = eventGroups.length > 3 || noUpcoming.length > 0;
 
-  const upcomingHTML = visibleUpcoming.length
+  const upcomingHTML = visibleGroups.length
     ? `
       <div class="favorite-list">
-        ${visibleUpcoming.map(({ name, event }) => `
+        ${visibleGroups.map(({ event, names }) => `
           <div class="favorite-item">
-            <div class="favorite-name">★ ${name}</div>
-            <div class="favorite-meta">${formatDisplayDate(event)}</div>
-            <div class="favorite-meta">会場：${event.venue}</div>
+            <div class="favorite-meta favorite-event-line">${formatDisplayDate(event)} ${event.venue}</div>
+            <div class="favorite-name">${names.join("／")}</div>
           </div>
         `).join("")}
       </div>
@@ -327,7 +323,7 @@ function renderFavoriteSchedule() {
   const noUpcomingHTML = favoriteScheduleExpanded && noUpcoming.length
     ? `
       <div class="favorite-no-upcoming">
-        <div class="favorite-subheading">掲載中の出演予定なし</div>
+        <div class="favorite-no-upcoming-title">掲載中の出演予定なし</div>
         <div class="favorite-name-list">${noUpcoming.map(({ name }) => name).join("、")}</div>
       </div>
     `
@@ -339,10 +335,9 @@ function renderFavoriteSchedule() {
     : "";
 
   target.innerHTML = `
-    <p class="favorite-summary">お気に入り${total}組中、${upcoming.length}組の出演情報があります</p>
-    ${upcoming.length ? '<div class="favorite-subheading">直近の出演予定</div>' : ""}
+    <p class="favorite-summary">お気に入り${total}組中、${upcomingCount}組の出演情報があります</p>
     ${upcomingHTML}
-    ${!favoriteScheduleExpanded && upcoming.length > 3 ? `<p class="favorite-more-note">ほか${upcoming.length - 3}組の出演予定があります</p>` : ""}
+    ${!favoriteScheduleExpanded && eventGroups.length > 3 ? `<p class="favorite-more-note">ほか${eventGroups.length - 3}公演の出演予定があります</p>` : ""}
     ${noUpcomingHTML}
     ${moreButtonHTML}
   `;
@@ -355,7 +350,6 @@ function renderFavoriteSchedule() {
     });
   }
 }
-
 
 function getTicketLinkHTML(ev, targetId) {
   if (targetId !== "results" || !ev.ticketUrl) return "";
@@ -473,7 +467,6 @@ function runSearch() {
     if (archiveResults) archiveResults.innerHTML = "";
   }
 }
-
 
 function bindAutoSearch() {
   let debounceTimer;
