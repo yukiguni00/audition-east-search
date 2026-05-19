@@ -40,6 +40,12 @@
       <h1>オーディションEAST<br>渋谷・神保町スタンドアップ<br>出演者検索（非公式）</h1>
     </header>
 
+    <section class="panel favorite-panel" id="favoritePanel" hidden>
+      <h2>★お気に入り出演予定</h2>
+      <p class="favorite-note">お気に入り登録した出演者の、次回出演を表示します。</p>
+      <div id="favoriteSchedule"></div>
+    </section>
+
     <section class="panel">
       <h2>芸人名で検索</h2>
       <input id="nameQuery" type="text" placeholder="芸人の名前を入力">
@@ -81,7 +87,8 @@
       </div>
 
       <p class="note">
-        お気に入りの登録情報はブラウザに依存するため、<br>ブラウザを変えるとリセットされますのでご注意ください
+        出演者名の★を押すと、次回出演をまとめて確認できます。<br>
+        ※お気に入り情報はブラウザに保存されます。
       </p>
       
     </section>

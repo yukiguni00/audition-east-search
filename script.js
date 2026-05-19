@@ -2,6 +2,7 @@ let favoritesOnlyMode = false;
 const FAVORITE_KEY = "favoritePerformers";
 let events = [];
 let archiveOpen = false;
+let favoriteScheduleExpanded = false;
 
 function formatDisplayDate(ev) {
   const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
@@ -42,6 +43,7 @@ function toggleFavorite(name) {
   }
 
   saveFavorites(favorites);
+  renderFavoriteSchedule();
 
   if (favoritesOnlyMode) {
     runSearch();
@@ -233,6 +235,128 @@ function filterEvents(list, includePast = false) {
     .sort((a, b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
 }
 
+
+function findPerformerDisplayName(key) {
+  for (const ev of events) {
+    if (!Array.isArray(ev.performers)) continue;
+    const found = ev.performers.find((name) => normalizeText(name) === key);
+    if (found) return found;
+  }
+  return key;
+}
+
+function getFavoriteScheduleData() {
+  const favorites = getFavorites();
+  const today = todayString();
+
+  const futureEvents = events
+    .filter((ev) => ev.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.timeMinutes - b.timeMinutes);
+
+  const upcoming = [];
+  const noUpcoming = [];
+
+  favorites.forEach((key) => {
+    const displayName = findPerformerDisplayName(key);
+    const nextEvent = futureEvents.find((ev) =>
+      Array.isArray(ev.performers) &&
+      ev.performers.some((name) => normalizeText(name) === key)
+    );
+
+    if (nextEvent) {
+      upcoming.push({
+        key,
+        name: displayName,
+        event: nextEvent,
+      });
+    } else {
+      noUpcoming.push({
+        key,
+        name: displayName,
+      });
+    }
+  });
+
+  upcoming.sort((a, b) =>
+    a.event.date.localeCompare(b.event.date) ||
+    a.event.timeMinutes - b.event.timeMinutes ||
+    a.name.localeCompare(b.name, "ja")
+  );
+
+  return {
+    total: favorites.length,
+    upcoming,
+    noUpcoming,
+  };
+}
+
+function renderFavoriteSchedule() {
+  const panel = document.getElementById("favoritePanel");
+  const target = document.getElementById("favoriteSchedule");
+  if (!panel || !target) return;
+
+  const favorites = getFavorites();
+
+  if (!favorites.length) {
+    favoriteScheduleExpanded = false;
+    panel.hidden = true;
+    target.innerHTML = "";
+    return;
+  }
+
+  panel.hidden = false;
+
+  const { total, upcoming, noUpcoming } = getFavoriteScheduleData();
+  const visibleUpcoming = favoriteScheduleExpanded ? upcoming : upcoming.slice(0, 3);
+  const hasMore = upcoming.length > 3 || noUpcoming.length > 0;
+
+  const upcomingHTML = visibleUpcoming.length
+    ? `
+      <div class="favorite-list">
+        ${visibleUpcoming.map(({ name, event }) => `
+          <div class="favorite-item">
+            <div class="favorite-name">★ ${name}</div>
+            <div class="favorite-meta">${formatDisplayDate(event)}</div>
+            <div class="favorite-meta">会場：${event.venue}</div>
+          </div>
+        `).join("")}
+      </div>
+    `
+    : `<p class="empty favorite-empty">掲載中の出演予定はありません</p>`;
+
+  const noUpcomingHTML = favoriteScheduleExpanded && noUpcoming.length
+    ? `
+      <div class="favorite-no-upcoming">
+        <div class="favorite-subheading">掲載中の出演予定なし</div>
+        <div class="favorite-name-list">${noUpcoming.map(({ name }) => name).join("、")}</div>
+      </div>
+    `
+    : "";
+
+  const moreText = favoriteScheduleExpanded ? "閉じる" : "すべて表示";
+  const moreButtonHTML = hasMore
+    ? `<button id="favoriteScheduleToggleBtn" class="secondary-btn favorite-toggle-btn" type="button">${moreText}</button>`
+    : "";
+
+  target.innerHTML = `
+    <p class="favorite-summary">お気に入り${total}組中、${upcoming.length}組の出演情報があります</p>
+    ${upcoming.length ? '<div class="favorite-subheading">直近の出演予定</div>' : ""}
+    ${upcomingHTML}
+    ${!favoriteScheduleExpanded && upcoming.length > 3 ? `<p class="favorite-more-note">ほか${upcoming.length - 3}組の出演予定があります</p>` : ""}
+    ${noUpcomingHTML}
+    ${moreButtonHTML}
+  `;
+
+  const toggleBtn = document.getElementById("favoriteScheduleToggleBtn");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      favoriteScheduleExpanded = !favoriteScheduleExpanded;
+      renderFavoriteSchedule();
+    });
+  }
+}
+
+
 function getTicketLinkHTML(ev, targetId) {
   if (targetId !== "results" || !ev.ticketUrl) return "";
 
@@ -404,6 +528,7 @@ async function init() {
 
   const res = await fetch("data/events.json", { cache: "no-store" });
   events = await res.json();
+  renderFavoriteSchedule();
   runSearch();
 }
 
